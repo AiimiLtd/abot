@@ -58,6 +58,7 @@ namespace Abot.Core
             dest.MaxPagesToCrawlPerDomain = src.MaxPagesToCrawlPerDomain;
             dest.MaxPageSizeInBytes = src.MaxPageSizeInBytes;
             dest.UserAgentString = src.UserAgentString;
+            dest.HttpProtocolVersion = GetHttpProtocolVersion(src);
             dest.CrawlTimeoutSeconds = src.CrawlTimeoutSeconds;
             dest.IsUriRecrawlingEnabled = src.IsUriRecrawlingEnabled;
             dest.IsExternalPageCrawlingEnabled = src.IsExternalPageCrawlingEnabled;
@@ -98,6 +99,21 @@ namespace Abot.Core
             dest.IsAlwaysLogin = src.IsAlwaysLogin;
             dest.LoginUser = src.LoginUser;
             dest.LoginPassword = src.LoginPassword;
+            dest.UseDefaultCredentials = src.UseDefaultCredentials;
+        }
+
+        private HttpProtocolVersion GetHttpProtocolVersion(CrawlBehaviorElement src)
+        {
+
+            switch (src.HttpProtocolVersion)
+            {
+                case "1.0":
+                    return HttpProtocolVersion.Version10;
+                case "1.1":
+                    return HttpProtocolVersion.Version11;
+                default:
+                    return HttpProtocolVersion.NotSpecified;
+            }
         }
 
         public static AbotConfigurationSectionHandler LoadFromXml()
@@ -134,6 +150,15 @@ namespace Abot.Core
         public string LoginPassword
         {
             get { return (string)this["loginPassword"]; }
+        }
+
+        /// <summary>
+        /// Specifies whether to use default credentials. 
+        /// </summary>
+        [ConfigurationProperty("useDefaultCredentials", IsRequired = false)]
+        public bool UseDefaultCredentials
+        {
+            get { return (bool)this["useDefaultCredentials"]; }
         }
     }
     [Serializable]
@@ -219,6 +244,12 @@ namespace Abot.Core
         public string UserAgentString
         {
             get { return (string)this["userAgentString"]; }
+        }
+
+        [ConfigurationProperty("httpProtocolVersion", IsRequired = false)]
+        public string HttpProtocolVersion
+        {
+            get{ return (string)this["httpProtocolVersion"]; }
         }
 
         [ConfigurationProperty("crawlTimeoutSeconds", IsRequired = false)]

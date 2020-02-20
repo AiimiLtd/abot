@@ -29,6 +29,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Debug\Abot.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -96,6 +97,7 @@
     <Compile Include="Core\CompactCrawledUrlRepository.cs" />
     <Compile Include="Core\AngleSharpHyperLinkParser.cs" />
     <Compile Include="Crawler\RobotsDotTextParseCompletedArgs.cs" />
+    <Compile Include="Poco\Enums.cs" />
     <Compile Include="Poco\HttpWebResponseWrapper.cs" />
     <Compile Include="Util\BloomFilter.cs" />
     <Compile Include="Util\CachedMemoryMonitor.cs" />

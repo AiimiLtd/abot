@@ -15,12 +15,13 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(_uut.CrawlBehavior);
             Assert.AreEqual(44, _uut.CrawlBehavior.CrawlTimeoutSeconds);
             Assert.AreEqual("bbbb", _uut.CrawlBehavior.DownloadableContentTypes);
-            Assert.AreEqual(true, _uut.CrawlBehavior.IsUriRecrawlingEnabled); 
+            Assert.AreEqual(true, _uut.CrawlBehavior.IsUriRecrawlingEnabled);
             Assert.AreEqual(11, _uut.CrawlBehavior.MaxConcurrentThreads);
             Assert.AreEqual(33, _uut.CrawlBehavior.MaxPagesToCrawl);
             Assert.AreEqual(333, _uut.CrawlBehavior.MaxPagesToCrawlPerDomain);
             Assert.AreEqual(4444, _uut.CrawlBehavior.MaxPageSizeInBytes);
             Assert.AreEqual("aaaa", _uut.CrawlBehavior.UserAgentString);
+            Assert.AreEqual("1.0", _uut.CrawlBehavior.HttpProtocolVersion);
             Assert.AreEqual(true, _uut.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(true, _uut.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
             Assert.AreEqual(21, _uut.CrawlBehavior.HttpServicePointConnectionLimit);
@@ -48,7 +49,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(true, _uut.Politeness.IsIgnoreRobotsDotTextIfRootDisallowedEnabled);
             Assert.AreEqual("zzzz", _uut.Politeness.RobotsDotTextUserAgentString);
             Assert.AreEqual(55, _uut.Politeness.MinCrawlDelayPerDomainMilliSeconds);
-            Assert.AreEqual(5, _uut.Politeness.MaxRobotsDotTextCrawlDelayInSeconds); 
+            Assert.AreEqual(5, _uut.Politeness.MaxRobotsDotTextCrawlDelayInSeconds);
 
             Assert.IsNotNull(_uut.ExtensionValues);
             Assert.AreEqual("key1", _uut.ExtensionValues[0].Key);
@@ -71,6 +72,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.MaxPagesToCrawlPerDomain, _uut.CrawlBehavior.MaxPagesToCrawlPerDomain);
             Assert.AreEqual(result.MaxPageSizeInBytes, _uut.CrawlBehavior.MaxPageSizeInBytes);
             Assert.AreEqual(result.UserAgentString, _uut.CrawlBehavior.UserAgentString);
+            Assert.AreEqual(result.HttpProtocolVersion, HttpProtocolVersion.Version10);
             Assert.AreEqual(result.IsExternalPageCrawlingEnabled, _uut.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _uut.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
             Assert.AreEqual(result.HttpServicePointConnectionLimit, _uut.CrawlBehavior.HttpServicePointConnectionLimit);
@@ -89,7 +91,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.IsForcedLinkParsingEnabled, _uut.CrawlBehavior.IsForcedLinkParsingEnabled);
             Assert.AreEqual(result.MaxRetryCount, _uut.CrawlBehavior.MaxRetryCount);
             Assert.AreEqual(result.MinRetryDelayInMilliseconds, _uut.CrawlBehavior.MinRetryDelayInMilliseconds);
-            
+
             Assert.AreEqual(result.IsRespectRobotsDotTextEnabled, _uut.Politeness.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual(result.IsRespectMetaRobotsNoFollowEnabled, _uut.Politeness.IsRespectMetaRobotsNoFollowEnabled);
             Assert.AreEqual(result.IsRespectHttpXRobotsTagHeaderNoFollowEnabled, _uut.Politeness.IsRespectHttpXRobotsTagHeaderNoFollowEnabled);
@@ -104,6 +106,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.IsAlwaysLogin, _uut.Authorization.IsAlwaysLogin);
             Assert.AreEqual(result.LoginPassword, _uut.Authorization.LoginPassword);
             Assert.AreEqual(result.LoginUser, _uut.Authorization.LoginUser);
+            Assert.AreEqual(result.UseDefaultCredentials, _uut.Authorization.UseDefaultCredentials);
 
             Assert.IsNotNull(result.ConfigurationExtensions);
             Assert.AreEqual(result.ConfigurationExtensions["key1"], _uut.ExtensionValues[0].Value);
