@@ -26,7 +26,7 @@ namespace Abot2.Core
     {
         private readonly CrawlConfiguration _config;
         private readonly IWebContentExtractor _contentExtractor;
-        private readonly CookieContainer _cookieContainer = new CookieContainer();
+        protected CookieContainer _cookieContainer = new CookieContainer();
         private HttpClientHandler _httpClientHandler;
         private HttpClient _httpClient;
 
