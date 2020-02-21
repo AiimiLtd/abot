@@ -1,6 +1,6 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Threading;
-using Serilog;
 
 namespace Abot2.Util
 {
@@ -32,6 +32,8 @@ namespace Abot2.Util
 
     public abstract class ThreadManager : IThreadManager
     {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected bool _abortAllCalled = false;
         protected int _numberOfRunningThreads = 0;
         protected ManualResetEvent _resetEvent = new ManualResetEvent(true);
@@ -75,7 +77,7 @@ namespace Abot2.Util
                     if (!_isDisplosed && _numberOfRunningThreads >= MaxThreads)
                         _resetEvent.Reset();
 
-                    Log.Debug("Starting another thread, increasing running threads to [{0}].", _numberOfRunningThreads);
+                    Log.DebugFormat("Starting another thread, increasing running threads to [{0}].", _numberOfRunningThreads);
                 }
                 RunActionOnDedicatedThread(action);
             }
@@ -132,7 +134,7 @@ namespace Abot2.Util
                     lock (_locker)
                     {
                         _numberOfRunningThreads--;
-                        Log.Debug("[{0}] threads are running.", _numberOfRunningThreads);
+                        Log.DebugFormat("[{0}] threads are running.", _numberOfRunningThreads);
                         if (!_isDisplosed && _numberOfRunningThreads < MaxThreads)
                             _resetEvent.Set();
                     }
