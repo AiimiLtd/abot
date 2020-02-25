@@ -1,30 +1,25 @@
 ﻿using System;
-using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Abot2.Core;
 using Abot2.Crawler;
 using Abot2.Poco;
-using Serilog;
-using Serilog.Formatting.Json;
+using log4net;
 
 namespace Abot2.Demo
 {
     public class Program
     {
+        protected static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public static async Task Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .Enrich.WithThreadId()
-                .WriteTo.Console(outputTemplate: Constants.LogFormatTemplate)
-                .CreateLogger();
-
-            Log.Information("Demo starting up!");
+            Log.Info("Demo starting up!");
 
             //await DemoPageRequester();
             await DemoSimpleCrawler();
 
-            Log.Information("Demo done!");
+            Log.Info("Demo done!");
             Console.ReadKey();
         }
 
@@ -54,7 +49,7 @@ namespace Abot2.Demo
 
             //var result = await pageRequester.MakeRequestAsync(new Uri("http://google.com"));
             var result = await pageRequester.MakeRequestAsync(new Uri("http://wvtesting2.com"));
-            Log.Information("{result}", new { url = result.Uri, status = Convert.ToInt32(result.HttpResponseMessage.StatusCode) });
+            Log.DebugFormat("{0}", new { url = result.Uri, status = Convert.ToInt32(result.HttpResponseMessage.StatusCode) });
 
         }
     }
