@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Abot2.Tests.Unit")]
+//[assembly: InternalsVisibleTo("Abot2.Tests.Unit")]
 
 namespace Abot2.Tests.Unit
 {
