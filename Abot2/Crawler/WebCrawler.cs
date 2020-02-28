@@ -10,8 +10,7 @@ using Abot2.Core;
 using Abot2.Poco;
 using Abot2.Util;
 using Timer = System.Timers.Timer;
-using Serilog;
-using Serilog.Events;
+using log4net;
 
 namespace Abot2.Crawler
 {
@@ -87,6 +86,8 @@ namespace Abot2.Crawler
 
     public abstract class WebCrawler : IWebCrawler
     {
+        protected static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         protected bool _crawlComplete = false;
         protected bool _crawlStopReported = false;
         protected bool _crawlCancellationReported = false;
@@ -202,13 +203,13 @@ namespace Abot2.Crawler
             _crawlResult.CrawlContext = _crawlContext;
             _crawlComplete = false;
 
-            Log.Information("About to crawl site [{0}]", uri.AbsoluteUri);
+            Log.InfoFormat("About to crawl site [{0}]", uri.AbsoluteUri);
             PrintConfigValues(_crawlContext.CrawlConfiguration);
 
             if (_memoryManager != null)
             {
                 _crawlContext.MemoryUsageBeforeCrawlInMb = _memoryManager.GetCurrentUsageInMb();
-                Log.Information("Starting memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageBeforeCrawlInMb);
+                Log.InfoFormat("Starting memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageBeforeCrawlInMb);
             }
 
             _crawlContext.CrawlStartDate = DateTime.Now;
@@ -233,8 +234,8 @@ namespace Abot2.Crawler
             catch (Exception e)
             {
                 _crawlResult.ErrorException = e;
-                Log.Fatal("An error occurred while crawling site [{0}]", uri);
-                Log.Fatal(e, "Exception details -->");
+                Log.FatalFormat("An error occurred while crawling site [{0}]", uri);
+                Log.Error("Exception details --> " + e);
             }
             finally
             {
@@ -248,11 +249,11 @@ namespace Abot2.Crawler
             if (_memoryManager != null)
             {
                 _crawlContext.MemoryUsageAfterCrawlInMb = _memoryManager.GetCurrentUsageInMb();
-                Log.Information("Ending memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
+                Log.InfoFormat("Ending memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
             }
 
             _crawlResult.Elapsed = timer.Elapsed;
-            Log.Information("Crawl complete for site [{0}]: Crawled [{1}] pages in [{2}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.CrawlContext.CrawledCount, _crawlResult.Elapsed);
+            Log.InfoFormat("Crawl complete for site [{0}]: Crawled [{1}] pages in [{2}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.CrawlContext.CrawledCount, _crawlResult.Elapsed);
 
             return _crawlResult;
         }
@@ -292,7 +293,7 @@ namespace Abot2.Crawler
             catch (Exception e)
             {
                 Log.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri);
-                Log.Error(e, "Exception details -->");
+                Log.Error("Exception details --> " + e);
             }
         }
 
@@ -306,7 +307,7 @@ namespace Abot2.Crawler
             catch (Exception e)
             {
                 Log.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri);
-                Log.Error(e, "Exception details -->");
+                Log.Error("Exception details --> " + e);
             }
         }
 
@@ -320,7 +321,7 @@ namespace Abot2.Crawler
             catch (Exception e)
             {
                 Log.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri);
-                Log.Error(e, "Exception details -->");
+                Log.Error("Exception details --> " + e);
             }
         }
 
@@ -334,7 +335,7 @@ namespace Abot2.Crawler
             catch (Exception e)
             {
                 Log.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri);
-                Log.Error(e, "Exception details -->");
+                Log.Error("Exception details --> " + e);
             }
         }
 
@@ -351,17 +352,17 @@ namespace Abot2.Crawler
                 var linksToScheduleCount = _scheduler.Count;
                 if (linksToScheduleCount > 0)
                 {
-                    Log.Debug($"There are [{linksToScheduleCount}] links to schedule...");
+                    Log.DebugFormat($"There are [{linksToScheduleCount}] links to schedule...");
                     _threadManager.DoWork(async () => await ProcessPage(_scheduler.GetNext()));
                 }
                 else if (!_threadManager.HasRunningThreads() && _processingPageCount < 1)//Ok that _processingPageCount could be a race condition, will be caught on the next loop iteration
                 {
-                    Log.Debug("No links to schedule, no threads/tasks in progress...");
+                    Log.DebugFormat("No links to schedule, no threads/tasks in progress...");
                     _crawlComplete = true;
                 }
                 else
                 {
-                    Log.Debug("Waiting for links to be scheduled...");
+                    Log.DebugFormat("Waiting for links to be scheduled...");
 
                     //Beware of issues here... https://github.com/sjdirect/abot/issues/203
                     await Task.Delay(2500).ConfigureAwait(false);
@@ -374,7 +375,7 @@ namespace Abot2.Crawler
             lock (_processingPageCountLock)
             {
                 _processingPageCount++;
-                Log.Debug($"Incrementing processingPageCount to [{_processingPageCount}]");
+                Log.DebugFormat($"Incrementing processingPageCount to [{_processingPageCount}]");
             }
 
             try
@@ -421,14 +422,14 @@ namespace Abot2.Crawler
             }
             catch (OperationCanceledException)
             {
-                Log.Debug("Thread cancelled while crawling/processing page [{0}]", pageToCrawl.Uri);
+                Log.DebugFormat("Thread cancelled while crawling/processing page [{0}]", pageToCrawl.Uri);
                 throw;
             }
             catch (Exception e)
             {
                 _crawlResult.ErrorException = e;
-                Log.Fatal("Error occurred during processing of page [{0}]", pageToCrawl.Uri);
-                Log.Fatal(e, "Exception details -->");
+                Log.FatalFormat("Error occurred during processing of page [{0}]", pageToCrawl.Uri);
+                Log.Fatal("Exception details --> " + e);
 
                 _crawlContext.IsCrawlHardStopRequested = true;
             }
@@ -437,14 +438,14 @@ namespace Abot2.Crawler
                 lock (_processingPageCountLock)
                 {
                     _processingPageCount--;
-                    Log.Debug($"Decrementing processingPageCount to [{_processingPageCount}]");
+                    Log.DebugFormat($"Decrementing processingPageCount to [{_processingPageCount}]");
                 }
             }
         }
 
         protected virtual async Task<CrawledPage> CrawlThePage(PageToCrawl pageToCrawl)
         {
-            Log.Debug("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
+            Log.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEvent(pageToCrawl);
 
             if (pageToCrawl.IsRetry) { WaitMinimumRetryDelay(pageToCrawl); }
@@ -456,9 +457,9 @@ namespace Abot2.Crawler
             Map(pageToCrawl, crawledPage);
 
             if (crawledPage.HttpResponseMessage == null)
-                Log.Information("Page crawl complete, Status:[NA] Url:[{0}] Elapsed:[{1}] Parent:[{2}] Retry:[{3}]", crawledPage.Uri.AbsoluteUri, crawledPage.Elapsed, crawledPage.ParentUri, crawledPage.RetryCount);
+                Log.InfoFormat("Page crawl complete, Status:[NA] Url:[{0}] Elapsed:[{1}] Parent:[{2}] Retry:[{3}]", crawledPage.Uri.AbsoluteUri, crawledPage.Elapsed, crawledPage.ParentUri, crawledPage.RetryCount);
             else
-                Log.Information("Page crawl complete, Status:[{0}] Url:[{1}] Elapsed:[{2}] Parent:[{3}] Retry:[{4}]", Convert.ToInt32(crawledPage.HttpResponseMessage.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.Elapsed, crawledPage.ParentUri, crawledPage.RetryCount);
+                Log.InfoFormat("Page crawl complete, Status:[{0}] Url:[{1}] Elapsed:[{2}] Parent:[{3}] Retry:[{4}]", Convert.ToInt32(crawledPage.HttpResponseMessage.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.Elapsed, crawledPage.ParentUri, crawledPage.RetryCount);
 
             return crawledPage;
         }
@@ -492,8 +493,8 @@ namespace Abot2.Crawler
                 return;
 
             var currentMemoryUsage = _memoryManager.GetCurrentUsageInMb();
-            if (Log.IsEnabled(LogEventLevel.Debug))
-                Log.Debug("Current memory usage for site [{0}] is [{1}mb]", _crawlContext.RootUri, currentMemoryUsage);
+            if (Log.IsDebugEnabled)
+                Log.DebugFormat("Current memory usage for site [{0}] is [{1}mb]", _crawlContext.RootUri, currentMemoryUsage);
 
             if (currentMemoryUsage > _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb)
             {
@@ -503,7 +504,7 @@ namespace Abot2.Crawler
                 var message = string.Format("Process is using [{0}mb] of memory which is above the max configured of [{1}mb] for site [{2}]. This is configurable through the maxMemoryUsageInMb in app.conf or CrawlConfiguration.MaxMemoryUsageInMb.", currentMemoryUsage, _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb, _crawlContext.RootUri);
                 _crawlResult.ErrorException = new InsufficientMemoryException(message);
 
-                Log.Fatal(_crawlResult.ErrorException, "Exception details -->");
+                Log.Fatal("Exception details -->" + _crawlResult.ErrorException);
                 _crawlContext.IsCrawlHardStopRequested = true;
             }
         }
@@ -529,7 +530,7 @@ namespace Abot2.Crawler
             {
                 if (!_crawlStopReported)
                 {
-                    Log.Information("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
+                    Log.InfoFormat("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
                     _crawlStopReported = true;
                 }
 
@@ -551,7 +552,7 @@ namespace Abot2.Crawler
             {
                 if (!_crawlStopReported)
                 {
-                    Log.Information("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
+                    Log.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
                     _crawlStopReported = true;
                 }
                 _scheduler.Clear();
@@ -563,14 +564,14 @@ namespace Abot2.Crawler
             var elapsedTimer = sender as Timer;
             elapsedTimer?.Stop();
 
-            Log.Information("Crawl timeout of [{0}] seconds has been reached for [{1}]", _crawlContext.CrawlConfiguration.CrawlTimeoutSeconds, _crawlContext.RootUri);
+            Log.InfoFormat("Crawl timeout of [{0}] seconds has been reached for [{1}]", _crawlContext.CrawlConfiguration.CrawlTimeoutSeconds, _crawlContext.RootUri);
             _crawlContext.IsCrawlHardStopRequested = true;
         }
 
         protected virtual void ProcessRedirect(CrawledPage crawledPage)
         {
             if (crawledPage.RedirectPosition >= 20)
-                Log.Warning("Page [{0}] is part of a chain of 20 or more consecutive redirects, redirects for this chain will now be aborted.", crawledPage.Uri);
+                Log.WarnFormat("Page [{0}] is part of a chain of 20 or more consecutive redirects, redirects for this chain will now be aborted.", crawledPage.Uri);
 
             try
             {
@@ -585,11 +586,11 @@ namespace Abot2.Crawler
                 page.RedirectPosition = crawledPage.RedirectPosition + 1;
 
                 crawledPage.RedirectedTo = page;
-                Log.Debug("Page [{0}] is requesting that it be redirect to [{1}]", crawledPage.Uri, crawledPage.RedirectedTo.Uri);
+                Log.DebugFormat("Page [{0}] is requesting that it be redirect to [{1}]", crawledPage.Uri, crawledPage.RedirectedTo.Uri);
 
                 if (ShouldSchedulePageLink(page))
                 {
-                    Log.Information("Page [{0}] will be redirect to [{1}]", crawledPage.Uri, crawledPage.RedirectedTo.Uri);
+                    Log.InfoFormat("Page [{0}] will be redirect to [{1}]", crawledPage.Uri, crawledPage.RedirectedTo.Uri);
                     _scheduler.Add(page);
                 }
             }
@@ -631,7 +632,7 @@ namespace Abot2.Crawler
                 crawledPage.Content.Bytes.Length > _crawlContext.CrawlConfiguration.MaxPageSizeInBytes)
             {
                 isAboveMax = true;
-                Log.Information("Page [{0}] has a page size of [{1}] bytes which is above the [{2}] byte max, no further processing will occur for this page", crawledPage.Uri, crawledPage.Content.Bytes.Length, _crawlContext.CrawlConfiguration.MaxPageSizeInBytes);
+                Log.InfoFormat("Page [{0}] has a page size of [{1}] bytes which is above the [{2}] byte max, no further processing will occur for this page", crawledPage.Uri, crawledPage.Content.Bytes.Length, _crawlContext.CrawlConfiguration.MaxPageSizeInBytes);
             }
             return isAboveMax;
         }
@@ -644,7 +645,7 @@ namespace Abot2.Crawler
 
             if (!shouldCrawlPageLinksDecision.Allow)
             {
-                Log.Debug("Links on page [{0}] not crawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldCrawlPageLinksDecision.Reason);
+                Log.DebugFormat("Links on page [{0}] not crawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldCrawlPageLinksDecision.Reason);
                 FirePageLinksCrawlDisallowedEvent(crawledPage, shouldCrawlPageLinksDecision.Reason);
             }
 
@@ -662,7 +663,7 @@ namespace Abot2.Crawler
                 shouldCrawlPageDecision.Reason.Contains("MaxPagesToCrawl limit of"))
             {
                 _maxPagesToCrawlLimitReachedOrScheduled = true;
-                Log.Information("MaxPagesToCrawlLimit has been reached or scheduled. No more pages will be scheduled.");
+                Log.InfoFormat("MaxPagesToCrawlLimit has been reached or scheduled. No more pages will be scheduled.");
                 return false;
             }
 
@@ -671,7 +672,7 @@ namespace Abot2.Crawler
 
             if (!shouldCrawlPageDecision.Allow)
             {
-                Log.Debug("Page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
+                Log.DebugFormat("Page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
                 FirePageCrawlDisallowedEvent(pageToCrawl, shouldCrawlPageDecision.Reason);
             }
 
@@ -688,7 +689,7 @@ namespace Abot2.Crawler
 
             if (!shouldRecrawlPageDecision.Allow)
             {
-                Log.Debug("Page [{0}] not recrawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldRecrawlPageDecision.Reason);
+                Log.DebugFormat("Page [{0}] not recrawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldRecrawlPageDecision.Reason);
             }
             else
             {
@@ -787,7 +788,7 @@ namespace Abot2.Crawler
 
                         if (!ShouldScheduleMorePageLink(linksToCrawl))
                         {
-                            Log.Information("MaxLinksPerPage has been reached. No more links will be scheduled for current page [{0}].", crawledPage.Uri);
+                            Log.InfoFormat("MaxLinksPerPage has been reached. No more links will be scheduled for current page [{0}].", crawledPage.Uri);
                             break;
                         }
                     }
@@ -824,20 +825,20 @@ namespace Abot2.Crawler
 
         protected virtual void PrintConfigValues(CrawlConfiguration config)
         {
-            Log.Information("Configuration Values:");
+            Log.InfoFormat("Configuration Values:");
 
             var indentString = new string(' ', 2);
             var abotVersion = Assembly.GetAssembly(this.GetType()).GetName().Version.ToString();
-            Log.Information("{0}Abot Version: {1}", indentString, abotVersion);
+            Log.InfoFormat("{0}Abot Version: {1}", indentString, abotVersion);
             foreach (var property in config.GetType().GetProperties())
             {
                 if (property.Name != "ConfigurationExtensions")
-                    Log.Information("{0}{1}: {2}", indentString, property.Name, property.GetValue(config, null));
+                    Log.InfoFormat("{0}{1}: {2}", indentString, property.Name, property.GetValue(config, null));
             }
 
             foreach (var key in config.ConfigurationExtensions.Keys)
             {
-                Log.Information("{0}{1}: {2}", indentString, key, config.ConfigurationExtensions[key]);
+                Log.InfoFormat("{0}{1}: {2}", indentString, key, config.ConfigurationExtensions[key]);
             }
         }
 
@@ -845,12 +846,12 @@ namespace Abot2.Crawler
         {
             if (decision.ShouldHardStopCrawl)
             {
-                Log.Information("Decision marked crawl [Hard Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
+                Log.InfoFormat("Decision marked crawl [Hard Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
                 _crawlContext.IsCrawlHardStopRequested = decision.ShouldHardStopCrawl;
             }
             else if (decision.ShouldStopCrawl)
             {
-                Log.Information("Decision marked crawl [Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
+                Log.InfoFormat("Decision marked crawl [Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
                 _crawlContext.IsCrawlStopRequested = decision.ShouldStopCrawl;
             }
         }
@@ -860,7 +861,7 @@ namespace Abot2.Crawler
             //TODO No unit tests cover these lines
             if (pageToCrawl.LastRequest == null)
             {
-                Log.Warning("pageToCrawl.LastRequest value is null for Url:{0}. Cannot retry without this value.", pageToCrawl.Uri.AbsoluteUri);
+                Log.WarnFormat("pageToCrawl.LastRequest value is null for Url:{0}. Cannot retry without this value.", pageToCrawl.Uri.AbsoluteUri);
                 return;
             }
 
@@ -877,7 +878,7 @@ namespace Abot2.Crawler
                 milliToWait = _crawlContext.CrawlConfiguration.MinRetryDelayInMilliseconds - milliSinceLastRequest;
             }
 
-            Log.Information("Waiting [{0}] milliseconds before retrying Url:[{1}] LastRequest:[{2}] SoonestNextRequest:[{3}]",
+            Log.InfoFormat("Waiting [{0}] milliseconds before retrying Url:[{1}] LastRequest:[{2}] SoonestNextRequest:[{3}]",
                 milliToWait,
                 pageToCrawl.Uri.AbsoluteUri,
                 pageToCrawl.LastRequest,
@@ -902,7 +903,7 @@ namespace Abot2.Crawler
             if (IsRedirect(crawledRootPage))
             {
                 _crawlContext.RootUri = ExtractRedirectUri(crawledRootPage);
-                Log.Information("The root URI [{0}] was redirected to [{1}]. [{1}] is the new root.",
+                Log.InfoFormat("The root URI [{0}] was redirected to [{1}]. [{1}] is the new root.",
                     _crawlContext.OriginalRootUri,
                     _crawlContext.RootUri);
             }

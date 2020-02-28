@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -6,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Abot2.Poco;
-using Serilog;
 
 namespace Abot2.Core
 {
@@ -17,6 +17,8 @@ namespace Abot2.Core
 
     public class WebContentExtractor : IWebContentExtractor
     {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public virtual async Task<PageContent> GetContentAsync(HttpResponseMessage response)
         {
             var pageContent = new PageContent
@@ -85,7 +87,7 @@ namespace Abot2.Core
             }
             catch
             {
-                Log.Warning("Could not get Encoding for charset string [0]", charset);
+                Log.WarnFormat("Could not get Encoding for charset string [0]", charset);
             }
 
             return e;

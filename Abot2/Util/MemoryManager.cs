@@ -1,6 +1,6 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Runtime;
-using Serilog;
 
 namespace Abot2.Util
 {
@@ -22,6 +22,8 @@ namespace Abot2.Util
 
     public class MemoryManager : IMemoryManager
     {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         IMemoryMonitor _memoryMonitor;
 
         public MemoryManager(IMemoryMonitor memoryMonitor)
@@ -55,7 +57,7 @@ namespace Abot2.Util
             }
             catch (NotImplementedException)
             {
-                Log.Warning("MemoryFailPoint is not implemented on this platform. The MemoryManager.IsSpaceAvailable() will just return true.");
+                Log.Warn("MemoryFailPoint is not implemented on this platform. The MemoryManager.IsSpaceAvailable() will just return true.");
             }
             finally
             {

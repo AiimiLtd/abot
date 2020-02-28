@@ -11,15 +11,15 @@ namespace Abot2.Tests.Unit.Core
             return new FifoPagesToCrawlRepository();
         }
 
-        [TestMethod]
-        public void Dispose_SetsInnerCollectionToNull()
-        {
-            var aaa = _unitUnderTest as FifoPagesToCrawlRepository;
-            Assert.IsNotNull(aaa?.UrlQueue);
+        //[TestMethod]
+        //public void Dispose_SetsInnerCollectionToNull()
+        //{
+        //    var aaa = _unitUnderTest as FifoPagesToCrawlRepository;
+        //    Assert.IsNotNull(aaa?.UrlQueue);
 
-            _unitUnderTest.Dispose();
+        //    _unitUnderTest.Dispose();
 
-            Assert.IsNull(aaa.UrlQueue);
-        }
+        //    Assert.IsNull(aaa.UrlQueue);
+        //}
     }
 }

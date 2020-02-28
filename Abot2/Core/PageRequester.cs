@@ -1,11 +1,11 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Abot2.Poco;
-using Serilog;
 
 namespace Abot2.Core
 { 
@@ -24,9 +24,11 @@ namespace Abot2.Core
 
     public class PageRequester : IPageRequester
     {
+        protected static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly CrawlConfiguration _config;
         private readonly IWebContentExtractor _contentExtractor;
-        private readonly CookieContainer _cookieContainer = new CookieContainer();
+        protected CookieContainer _cookieContainer = new CookieContainer();
         private HttpClientHandler _httpClientHandler;
         private HttpClient _httpClient;
 
@@ -81,17 +83,17 @@ namespace Abot2.Core
             catch (HttpRequestException hre)
             {
                 crawledPage.HttpRequestException = hre;
-                Log.Debug("Error occurred requesting url [{0}] {@Exception}", uri.AbsoluteUri, hre);
+                Log.Debug($"Error occurred requesting url [{uri.AbsoluteUri}] {hre}");
             }
             catch (TaskCanceledException ex)
             {
                 crawledPage.HttpRequestException = new HttpRequestException("Request timeout occurred", ex);//https://stackoverflow.com/questions/10547895/how-can-i-tell-when-httpclient-has-timed-out
-                Log.Debug("Error occurred requesting url [{0}] {@Exception}", uri.AbsoluteUri, crawledPage.HttpRequestException);
+                Log.Debug($"Error occurred requesting url [{uri.AbsoluteUri}] {crawledPage.HttpRequestException}");
             }
             catch (Exception e)
             {
                 crawledPage.HttpRequestException = new HttpRequestException("Unknown error occurred", e);
-                Log.Debug("Error occurred requesting url [{0}] {@Exception}", uri.AbsoluteUri, crawledPage.HttpRequestException);
+                Log.Debug($"Error occurred requesting url [{uri.AbsoluteUri}] {crawledPage.HttpRequestException}");
             }
             finally
             {
@@ -113,13 +115,13 @@ namespace Abot2.Core
                         }
                         else
                         {
-                            Log.Debug("Links on page [{0}] not crawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldDownloadContentDecision.Reason);
+                            Log.Debug($"Links on page [{crawledPage.Uri.AbsoluteUri}] not crawled, [{shouldDownloadContentDecision.Reason}]");
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Debug("Error occurred finalizing requesting url [{0}] {@Exception}", uri.AbsoluteUri, e);
+                    Log.Debug($"Error occurred finalizing requesting url [{uri.AbsoluteUri}] {e}");
                 }
             }
 

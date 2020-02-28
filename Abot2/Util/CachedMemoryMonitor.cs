@@ -1,11 +1,13 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Timers;
-using Serilog;
 
 namespace Abot2.Util
 {
     public class CachedMemoryMonitor : IMemoryMonitor, IDisposable
     {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         IMemoryMonitor _memoryMonitor;
         Timer _usageRefreshTimer;
         int _cachedCurrentUsageInMb;
@@ -31,7 +33,7 @@ namespace Abot2.Util
         {
             var oldUsage = _cachedCurrentUsageInMb;
             _cachedCurrentUsageInMb = _memoryMonitor.GetCurrentUsageInMb();
-            Log.Debug("Updated cached memory usage value from [{0}mb] to [{1}mb]", oldUsage, _cachedCurrentUsageInMb);
+            Log.DebugFormat("Updated cached memory usage value from [{0}mb] to [{1}mb]", oldUsage, _cachedCurrentUsageInMb);
         }
 
         public virtual int GetCurrentUsageInMb()

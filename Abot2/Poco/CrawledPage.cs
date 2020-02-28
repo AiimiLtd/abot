@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Net.Http;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
-using Serilog;
+using log4net;
 
 namespace Abot2.Poco
 {
     public class CrawledPage : PageToCrawl
     {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         HtmlParser _angleSharpHtmlParser;
 
         readonly Lazy<IHtmlDocument> _angleSharpHtmlDocument;
@@ -109,7 +111,7 @@ namespace Abot2.Poco
             {
                 document = _angleSharpHtmlParser.ParseDocument("");
 
-                Log.Error("Error occurred while loading AngularSharp object for Url [{0}] {@Exception}", Uri, e);
+                Log.ErrorFormat("Error occurred while loading AngularSharp object for Url [{0}] {@Exception}", Uri, e);
             }
 
             return document;

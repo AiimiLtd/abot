@@ -1,12 +1,10 @@
 ﻿using Abot2.Core;
 using Abot2.Poco;
 using System;
-using System.Net.Http;
 using Robots;
 using Abot2.Util;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace Abot2.Crawler
 {
@@ -84,13 +82,13 @@ namespace Abot2.Crawler
             {
                 if (robotsDotTextCrawlDelayInSecs > _crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds)
                 {
-                    Log.Warning("[{0}] robot.txt file directive [Crawl-delay: {1}] is above the value set in the config value MaxRobotsDotTextCrawlDelay, will use MaxRobotsDotTextCrawlDelay value instead.", uri, _crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds);
+                    Log.Warn($"[{uri}] robot.txt file directive [Crawl-delay: {_crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds}] is above the value set in the config value MaxRobotsDotTextCrawlDelay, will use MaxRobotsDotTextCrawlDelay value instead.");
 
                     robotsDotTextCrawlDelayInSecs = _crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds;
                     robotsDotTextCrawlDelayInMillisecs = robotsDotTextCrawlDelayInSecs * 1000;
                 }
 
-                Log.Warning("[{0}] robot.txt file directive [Crawl-delay: {1}] will be respected.", uri, robotsDotTextCrawlDelayInSecs);
+                Log.Warn($"[{uri}] robot.txt file directive [Crawl-delay: {robotsDotTextCrawlDelayInSecs}] will be respected.");
                 _domainRateLimiter.AddDomain(uri, robotsDotTextCrawlDelayInMillisecs);
             }
 
@@ -159,7 +157,7 @@ namespace Abot2.Crawler
             catch (Exception e)
             {
                 Log.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for robots.txt");
-                Log.Error(e, "Exception details -->");
+                Log.Error($"Exception details --> {e}");
             }
         }
     }
