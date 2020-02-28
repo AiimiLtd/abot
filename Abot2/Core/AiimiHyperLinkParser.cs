@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace InsightMaker.Source.Web
+namespace Abot2.Core
 {
     /// <summary>
     /// An extension of the Abot AngleSharpHyperLinkParser. 

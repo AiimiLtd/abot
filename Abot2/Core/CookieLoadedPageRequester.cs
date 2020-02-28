@@ -2,7 +2,7 @@
 using Abot2.Poco;
 using System.Net;
 
-namespace InsightMaker.Source.Web
+namespace Abot2.Core
 {
     public class CookieLoadedPageRequester : PageRequester
     {
